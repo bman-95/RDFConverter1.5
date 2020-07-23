@@ -1,10 +1,15 @@
 package pt.unl.fct.di.novalincs.nohr.plugin.rdfmapping;
 
 import org.protege.editor.core.ui.list.MListSectionHeader;
+import pt.unl.fct.di.novalincs.nohr.model.HashSetRDFMappingSet;
 import pt.unl.fct.di.novalincs.nohr.model.RDFMapping;
 import pt.unl.fct.di.novalincs.nohr.model.RDFMappingSet;
 
 import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class RDFMappingListModel extends AbstractListModel<Object> {
@@ -31,18 +36,73 @@ public class RDFMappingListModel extends AbstractListModel<Object> {
 
     private final RDFMappingSetPersistenceManager rdfMappingSetPersistenceManager;
 
-    public RDFMappingListModel(RDFMappingSet rdfMappingSet) {
+    public RDFMappingListModel(RDFMappingEditor rdfMappingEditor, RDFMappingSet rdfMappingSet, RDFMappingSetPersistenceManager rdfMappingSetPersistenceManager) {
+        super();
+        this.rdfMappingSetPersistenceManager = rdfMappingSetPersistenceManager;
+        this.rdfMappingEditor = rdfMappingEditor;
         this.rdfMappingSet = rdfMappingSet;
+        rdfMappingItems = new ArrayList<>(rdfMappingSet.size());
+        rdfMappingItems.add(HEADER);
+        if (rdfMappingSet.size() > 0)
+            for (final RDFMapping rdfMapping : rdfMappingSet) {
+                rdfMappingItems.add(new RDFMappingListItem(rdfMappingItems.size() - 1, this, rdfMapping));
+            }
     }
 
 
     @Override
     public int getSize() {
-        return 0;
+        return rdfMappingItems.size();
     }
 
     @Override
     public Object getElementAt(int index) {
-        return null;
+        return rdfMappingItems.get(index);
+    }
+
+    public RDFMapping edit(int index, RDFMapping rdfMapping) {
+        rdfMappingEditor.setRDFMapping(rdfMapping);
+        final RDFMapping newRDFMapping = rdfMappingEditor.show();
+        boolean updated = false;
+        if (newRDFMapping != null) {
+            updated = rdfMappingSet.update(rdfMapping, newRDFMapping);
+        }
+        fireContentsChanged(this, index, index);
+        return updated ? newRDFMapping : null;
+    }
+
+    public boolean remove(int index, RDFMapping rdfMapping) {
+        final boolean removed = rdfMappingSet.remove(rdfMapping);
+
+        if (removed) {
+
+            if (index < rdfMappingItems.size() - 1) {
+                for (int i = index + 1; i <= rdfMappingItems.size() - 1; i++) {
+                    ((RDFMappingListItem) getElementAt(i)).setIndex(i - 1);
+                }
+            }
+            rdfMappingItems.remove(index);
+            super.fireIntervalRemoved(this, index, index);
+        }
+        return removed;
+    }
+
+    public void load(File file) throws IOException {
+        RDFMappingSet temRDFMapping = new HashSetRDFMappingSet(Collections.<RDFMapping>emptySet());
+        rdfMappingSetPersistenceManager.load(file, temRDFMapping);
+        final int size = rdfMappingSet.size();
+        rdfMappingSet.clear();
+        rdfMappingSet.addAll(((HashSetRDFMappingSet) temRDFMapping).getRDFMappings());
+        rdfMappingItems.clear();
+        rdfMappingItems.add(HEADER);
+
+        for (final RDFMapping rdfMapping : rdfMappingSet) {
+            rdfMappingItems.add(new RDFMappingListItem(rdfMappingItems.size(), this, rdfMapping));
+        }
+        super.fireContentsChanged(this, 0, Math.max(rdfMappingSet.size() - 1, size - 1));
+    }
+
+    public void save(File file) throws IOException{
+        RDFMappingSetPersistenceManager.write(rdfMappingSet,file);
     }
 }

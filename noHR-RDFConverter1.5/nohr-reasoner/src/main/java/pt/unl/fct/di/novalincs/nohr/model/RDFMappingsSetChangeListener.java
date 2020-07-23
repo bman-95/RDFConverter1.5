@@ -8,6 +8,8 @@ public interface RDFMappingsSetChangeListener {
 
     void cleared();
 
+    void removed(RDFMapping rdfMapping);
+
     void update(RDFMapping oldRDFMapping, RDFMapping newDBMapping);
 
 }

@@ -8,5 +8,7 @@ public interface RDFMapping {
 
     String getSPARQL();
 
+    String getFileSyntax();
+
     //TODO Finish this interface
 }
