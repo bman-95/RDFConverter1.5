@@ -1,6 +1,7 @@
 package pt.unl.fct.di.novalincs.nohr.plugin.rdfmapping;
 
 import org.protege.editor.core.ui.list.MListSectionHeader;
+import org.protege.editor.owl.OWLEditorKit;
 import pt.unl.fct.di.novalincs.nohr.model.HashSetRDFMappingSet;
 import pt.unl.fct.di.novalincs.nohr.model.RDFMapping;
 import pt.unl.fct.di.novalincs.nohr.model.RDFMappingSet;
@@ -36,7 +37,7 @@ public class RDFMappingListModel extends AbstractListModel<Object> {
 
     private final RDFMappingSetPersistenceManager rdfMappingSetPersistenceManager;
 
-    public RDFMappingListModel(RDFMappingEditor rdfMappingEditor, RDFMappingSet rdfMappingSet, RDFMappingSetPersistenceManager rdfMappingSetPersistenceManager) {
+    public RDFMappingListModel(OWLEditorKit editorKit, RDFMappingEditor rdfMappingEditor, RDFMappingSetPersistenceManager rdfMappingSetPersistenceManager, RDFMappingSet rdfMappingSet) {
         super();
         this.rdfMappingSetPersistenceManager = rdfMappingSetPersistenceManager;
         this.rdfMappingEditor = rdfMappingEditor;
@@ -49,6 +50,27 @@ public class RDFMappingListModel extends AbstractListModel<Object> {
             }
     }
 
+    boolean add(RDFMapping rdfMapping) {
+        final boolean added = rdfMappingSet.add(rdfMapping);
+
+        System.out.println("RDFMappingListModel.add() called");
+
+        if (added) {
+            System.out.println("RDF add Confirmed!");
+            final int index = rdfMappingItems.size();
+            rdfMappingItems.add(new RDFMappingListItem(index, this, rdfMapping));
+            super.fireIntervalAdded(this, index, index);
+        }
+        return added;
+    }
+
+    public void clear() {
+        final int size = rdfMappingItems.size();
+        rdfMappingSet.clear();
+        rdfMappingItems.clear();
+        rdfMappingItems.add(HEADER);
+        super.fireIntervalRemoved(this, 1, size);
+    }
 
     @Override
     public int getSize() {
@@ -71,7 +93,7 @@ public class RDFMappingListModel extends AbstractListModel<Object> {
         return updated ? newRDFMapping : null;
     }
 
-    public boolean remove(int index, RDFMapping rdfMapping) {
+    boolean remove(int index, RDFMapping rdfMapping) {
         final boolean removed = rdfMappingSet.remove(rdfMapping);
 
         if (removed) {
@@ -102,7 +124,7 @@ public class RDFMappingListModel extends AbstractListModel<Object> {
         super.fireContentsChanged(this, 0, Math.max(rdfMappingSet.size() - 1, size - 1));
     }
 
-    public void save(File file) throws IOException{
-        RDFMappingSetPersistenceManager.write(rdfMappingSet,file);
+    public void save(File file) throws IOException {
+        RDFMappingSetPersistenceManager.write(rdfMappingSet, file);
     }
 }

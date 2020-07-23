@@ -4,7 +4,7 @@ import pt.unl.fct.di.novalincs.nohr.model.RDFMapping;
 import pt.unl.fct.di.novalincs.nohr.model.vocabulary.Vocabulary;
 
 import javax.swing.*;
-
+//TODO finish this
 public class RDFMappingEditorForm extends JPanel {
 
     private final Vocabulary vocabulary;

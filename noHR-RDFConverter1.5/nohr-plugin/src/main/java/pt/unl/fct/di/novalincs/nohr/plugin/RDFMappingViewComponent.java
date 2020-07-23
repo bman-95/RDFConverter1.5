@@ -1,10 +1,8 @@
 package pt.unl.fct.di.novalincs.nohr.plugin;
 
 import org.protege.editor.core.ui.util.UIUtil;
-import pt.unl.fct.di.novalincs.nohr.plugin.dbmapping.DBMappingEditor;
-import pt.unl.fct.di.novalincs.nohr.plugin.dbmapping.DBMappingList;
-import pt.unl.fct.di.novalincs.nohr.plugin.dbmapping.DBMappingListModel;
 import pt.unl.fct.di.novalincs.nohr.plugin.rdfmapping.RDFMappingEditor;
+import pt.unl.fct.di.novalincs.nohr.plugin.rdfmapping.RDFMappingList;
 import pt.unl.fct.di.novalincs.nohr.plugin.rdfmapping.RDFMappingListModel;
 
 import javax.swing.*;
@@ -17,8 +15,7 @@ public class RDFMappingViewComponent extends AbstractNoHRViewComponent {
 
     private static final long serialVersionUID = 1L;
 
-    private DBMappingList dbMappingList;
-
+    private RDFMappingList rdfMappingList;
 
     private RDFMappingEditor rdfMappingEditor;
 
@@ -27,17 +24,14 @@ public class RDFMappingViewComponent extends AbstractNoHRViewComponent {
         setLayout(new BorderLayout(10, 10));
 
 
-        rdfMappingEditor = new RDFMappingEditor( getVocabulary(),this);
+        rdfMappingEditor = new RDFMappingEditor(getVocabulary(), this);
 
         final RDFMappingListModel rdfMappingListModel = getRDFMappingListModel();
 
-        /*
-//        define the object that represents the tab
-        final DBMappingListModel dbMappingListModel = getDBMappingListModel();
-//        reset();
-        dbMappingList = new DBMappingList(dbMappingEditor, dbMappingListModel);
-        dbMappingList.setFont(new Font(this.getFont().getFontName(), Font.BOLD, 14));
-        final JScrollPane jScrollPane = new JScrollPane(dbMappingList);
+        rdfMappingList = new RDFMappingList(rdfMappingEditor, rdfMappingListModel);
+        rdfMappingList.setFont(new Font(this.getFont().getFontName(), Font.BOLD, 14));
+//
+        final JScrollPane jScrollPane = new JScrollPane(rdfMappingList);
         add(jScrollPane, BorderLayout.CENTER);
         //final JPanel buttonHolder = new JPanel(new FlowLayout(FlowLayout.LEFT));
         final Box buttonHolder = new Box(BoxLayout.X_AXIS);
@@ -55,7 +49,7 @@ public class RDFMappingViewComponent extends AbstractNoHRViewComponent {
                     try {
                         final File file = fc.getSelectedFile();
                         RDFMappingViewComponent.this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                        dbMappingListModel.load(file);
+                        rdfMappingListModel.load(file);
                     } catch (final Exception e) {
                         Messages.invalidmappingFile(RDFMappingViewComponent.this, e);
                     } finally {
@@ -78,7 +72,7 @@ public class RDFMappingViewComponent extends AbstractNoHRViewComponent {
                     try {
                         final File file = fc.getSelectedFile();
                         RDFMappingViewComponent.this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                        dbMappingListModel.save(file);
+                        rdfMappingListModel.save(file);
                     } catch (final IOException e) {
                         Messages.unsucceccfulSave(RDFMappingViewComponent.this, e);
                     } finally {
@@ -95,7 +89,7 @@ public class RDFMappingViewComponent extends AbstractNoHRViewComponent {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                dbMappingListModel.clear();
+                rdfMappingListModel.clear();
             }
         });
 
@@ -118,7 +112,18 @@ public class RDFMappingViewComponent extends AbstractNoHRViewComponent {
         buttonHolder.add(Box.createHorizontalStrut(5));
         buttonHolder.add(Box.createHorizontalStrut(5));
         add(buttonHolder, BorderLayout.SOUTH);
-*/
+
+    }
+
+    private RDFMappingListModel getRDFMappingListModel() {
+        DisposableObject<RDFMappingListModel> rdfMappingListModelDisposableObject = getOWLModelManager().get(RDFMappingListModel.class);
+
+        if (rdfMappingListModelDisposableObject == null) {
+            rdfMappingListModelDisposableObject = new DisposableObject<>(
+                    new RDFMappingListModel(getOWLEditorKit(), rdfMappingEditor, getRDFMappingSetPersistenceManager(), getRDFMappingSet()));
+            getOWLModelManager().put(RDFMappingListModel.class, rdfMappingListModelDisposableObject);
+        }
+        return rdfMappingListModelDisposableObject.getObject();
     }
 
     @Override
